@@ -49,6 +49,47 @@ header h1 {
   letter-spacing: -0.02em;
 }
 
+/* ── Tab bar ── */
+
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 0.5rem 1.125rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Topic group ── */
+
+.topic-group {
+  display: none;
+}
+
+.topic-group.active {
+  display: block;
+}
+
 /* ── Topic card (top level) ── */
 
 .topic-card {

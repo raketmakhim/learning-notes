@@ -1,3 +1,17 @@
 [
-  "content/concurrency.md"
+  {
+    "tab": "Java",
+    "topics": [
+      "content/java/concurrency.md"
+    ]
+  },
+  {
+    "tab": "Python",
+    "topics": [
+      "content/python/data-structures.md",
+      "content/python/comprehensions.md",
+      "content/python/unpacking.md",
+      "content/python/string-formatting.md"
+    ]
+  }
 ]
