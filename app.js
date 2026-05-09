@@ -15,11 +15,12 @@ function parseTitle(markdown) {
   return match ? match[1].trim() : 'Untitled';
 }
 
-// Splits the body (everything after the # title) into sections by ## headings.
-// Returns [{ title: string | null, content: string }, ...]
-// title is null for any intro text before the first ##.
 function parseSections(markdown) {
+  // Strip the top-level # title line so it isn't treated as content
   const body = markdown.replace(/^#[^\n]*\n?/, '').trim();
+
+  // Split on ## headings using a lookahead so the '## ' is kept at the
+  // start of each part rather than consumed by the split delimiter
   const parts = body.split(/^(?=##\s)/m);
   const sections = [];
 
@@ -27,7 +28,8 @@ function parseSections(markdown) {
     const trimmed = part.trim();
     if (!trimmed) continue;
 
-    if (trimmed.startsWith('## ')) {
+    if (/^##\s/.test(trimmed)) {
+      // Extract the heading text and the body that follows it
       const newlineIndex = trimmed.indexOf('\n');
       const title = newlineIndex === -1
         ? trimmed.slice(3).trim()
@@ -35,7 +37,8 @@ function parseSections(markdown) {
       const content = newlineIndex === -1 ? '' : trimmed.slice(newlineIndex + 1).trim();
       sections.push({ title, content });
     } else {
-      // Intro content before the first ##
+      // Content that appears before the first ## heading becomes an intro
+      // block rendered directly inside the card without a toggle
       sections.push({ title: null, content: trimmed });
     }
   }
@@ -74,6 +77,8 @@ function buildSection(title, contentHTML) {
   button.appendChild(titleSpan);
   button.appendChild(buildChevron());
 
+  // The wrapper exists as a CSS hook for the max-height collapse animation.
+  // The inner body holds the actual content; the wrapper is what transitions.
   const wrapper = document.createElement('div');
   wrapper.className = 'section-body-wrapper';
 
@@ -108,6 +113,7 @@ function buildCard(title, sections) {
   button.appendChild(titleSpan);
   button.appendChild(buildChevron());
 
+  // See buildSection — same wrapper/body pattern for the collapse animation
   const wrapper = document.createElement('div');
   wrapper.className = 'topic-body-wrapper';
 
@@ -117,7 +123,8 @@ function buildCard(title, sections) {
   for (const { title: sTitle, content } of sections) {
     const html = marked.parse(content);
     if (sTitle === null) {
-      // Intro text — render inline without a collapsible
+      // Intro content (before the first ## heading) is rendered flat,
+      // not inside a collapsible section
       const intro = document.createElement('div');
       intro.className = 'topic-intro';
       intro.innerHTML = html;
@@ -139,6 +146,36 @@ function buildCard(title, sections) {
   return card;
 }
 
+function buildTabBar(entries) {
+  const bar = document.createElement('div');
+  bar.className = 'tab-bar';
+  bar.setAttribute('role', 'tablist');
+
+  entries.forEach(({ group, el: groupEl }, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = group.tab;
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+
+    btn.addEventListener('click', () => {
+      // Deactivate all tabs, then activate only the clicked one
+      bar.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      // Show only the group whose index matches the clicked tab
+      entries.forEach(({ el }, j) => el.classList.toggle('active', i === j));
+    });
+
+    bar.appendChild(btn);
+  });
+
+  return bar;
+}
+
 function escapeHTML(str) {
   return str
     .replace(/&/g, '&amp;')
@@ -151,22 +188,46 @@ async function init() {
   const container = document.getElementById('topics');
 
   try {
-    const paths = await loadTopics();
+    const groups = await loadTopics();
     container.innerHTML = '';
 
-    for (const path of paths) {
-      try {
-        const markdown = await loadMarkdown(path);
+    const entries = [];
+
+    for (const group of groups) {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'topic-group';
+
+      // Fetch all files in this group in parallel. allSettled (rather than
+      // Promise.all) ensures a single failed fetch doesn't abort the rest —
+      // each result is checked individually below
+      const results = await Promise.allSettled(group.topics.map(loadMarkdown));
+
+      results.forEach((result, i) => {
+        if (result.status === 'rejected') {
+          console.warn(`Skipping ${group.topics[i]}:`, result.reason.message);
+          return;
+        }
+        const markdown = result.value;
         const title = parseTitle(markdown);
         const sections = parseSections(markdown);
         const card = buildCard(title, sections);
-        container.appendChild(card);
-      } catch (err) {
-        console.warn(`Skipping ${path}:`, err.message);
-      }
+        groupEl.appendChild(card);
+      });
+
+      entries.push({ group, el: groupEl });
     }
 
-    if (container.children.length === 0) {
+    // Only render tab bar when there is more than one tab
+    if (entries.length > 1) {
+      container.appendChild(buildTabBar(entries));
+    }
+
+    entries.forEach(({ el }, i) => {
+      if (i === 0) el.classList.add('active');
+      container.appendChild(el);
+    });
+
+    if (entries.every(({ el }) => el.children.length === 0)) {
       container.innerHTML = '<p class="error">No topics found. Add paths to topics.json.</p>';
     }
   } catch (err) {

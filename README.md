@@ -1,69 +1,86 @@
 # Learning Notes
 
-A minimal static site for personal learning notes. Topics are written as Markdown files and rendered as collapsible cards with nested collapsible sections.
+A minimal static site for personal learning notes. Topics are written as Markdown files, organised into tabs by folder, and rendered as collapsible cards with nested collapsible sections.
 
 ## Running locally
 
 Browsers block file fetches, so you need a local server:
 
 ```bash
-# Python
+python serve.py
+```
+
+Or manually:
+
+```bash
 python -m http.server 8080
+# open http://localhost:8080
 ```
 
-Then open `http://localhost:8080`.
+## Adding a tab / folder
 
-## Adding a topic
-
-**1. Create a Markdown file in `content/`**
+**1. Create a folder inside `content/`**
 
 ```
-content/your-topic.md
+content/
+  java/
+    concurrency.md
+  python/
+    decorators.md
 ```
 
-**2. Add it to `topics.json`**
+**2. Register it in `topics.json`**
 
 ```json
 [
-  "content/concurrency.md",
-  "content/your-topic.md"
+  {
+    "tab": "Java",
+    "topics": [
+      "content/java/concurrency.md"
+    ]
+  },
+  {
+    "tab": "Python",
+    "topics": [
+      "content/python/decorators.md"
+    ]
+  }
 ]
 ```
 
-Topics appear in the order they are listed.
+Add as many tabs as you like — the tab bar renders dynamically from this file. If there is only one tab, the tab bar is hidden automatically.
 
 ## Markdown format
 
 ```markdown
-# Topic Title — shown as the top-level card button
+# Topic Title — shown as the card button
 
 ## Section Name
 
 This becomes a nested collapsible inside the card.
 
-**bold** and `inline code` work as expected.
+**Term**: definition or explanation here.
 
 ## Another Section
 
 More notes...
 
-> **Gotcha:** This blockquote syntax renders as a red/orange warning callout.
-> Use it for common mistakes or important caveats.
+> **Gotcha:** Red/orange warning callout for important caveats.
 ```
 
 | Syntax | Renders as |
 |---|---|
 | `#` | Top-level card (one per file) |
 | `##` | Nested collapsible section inside the card |
-| `> **Gotcha:** ...` | Red/orange highlighted warning block |
-| `**bold**` | Bold text |
+| `**Term**` | Orange highlighted term label |
 | `` `code` `` | Inline code |
+| `> **Gotcha:** ...` | Red/orange warning block |
 
 ## Deploying to GitHub Pages
 
 1. Push the repo to GitHub
 2. Go to **Settings → Pages**
 3. Set source to `main` branch, `/ (root)` folder
-4. Your site will be live at `https://<username>.github.io/<repo>/`
+4. Live at `https://<username>.github.io/<repo>/`
 
-After that, adding a topic is just: write the file, update `topics.json`, and push.
+After that: write a file, update `topics.json`, push.
