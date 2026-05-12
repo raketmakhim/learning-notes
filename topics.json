@@ -1,17 +1,35 @@
 [
   {
+    "tab": "CS Fundamentals",
+    "topics": [
+      "content/cs-fundamentals/concurrency-vs-parallelism.md",
+      "content/cs-fundamentals/processes-and-threads.md",
+      "content/cs-fundamentals/cpu-and-memory.md",
+      "content/cs-fundamentals/sync-primitives.md",
+      "content/cs-fundamentals/amdahls-law.md",
+      "content/cs-fundamentals/concurrency-patterns.md"
+    ]
+  },
+  {
     "tab": "Java",
     "topics": [
-      "content/java/concurrency.md"
+      "content/java/atomic.md",
+      "content/java/blocking-queue.md",
+      "content/java/completable-future.md",
+      "content/java/concurrency.md",
+      "content/java/memory-model.md",
+      "content/java/multithreading.md",
+      "content/java/locks.md"
     ]
   },
   {
     "tab": "Python",
     "topics": [
-      "content/python/data-structures.md",
       "content/python/comprehensions.md",
-      "content/python/unpacking.md",
-      "content/python/string-formatting.md"
+      "content/python/concurrency.md",
+      "content/python/data-structures.md",
+      "content/python/string-formatting.md",
+      "content/python/unpacking.md"
     ]
   }
 ]

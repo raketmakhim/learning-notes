@@ -38,9 +38,26 @@ Unordered collection of unique hashable elements. Backed by a hash table. Member
 **Common operations:**
 - `x in s` — O(1)
 - `s.add(x)` — O(1)
-- `s & t` — intersection
-- `s | t` — union
-- `s - t` — difference
+- `s.remove(x)` — O(1), raises `KeyError` if missing
+- `s.discard(x)` — O(1), silent if missing
+
+**Set operations:**
+- `s & t` — intersection: elements in both s and t
+- `s | t` — union: all elements from s and t combined
+- `s - t` — difference: elements in s but not in t
+- `s ^ t` — symmetric difference: elements in either s or t, but not both
+
+All four also have method equivalents (`s.intersection(t)`, `s.union(t)`, etc.) that accept any iterable, not just other sets.
+
+```python
+a = {1, 2, 3, 4}
+b = {3, 4, 5, 6}
+
+a & b   # {3, 4}
+a | b   # {1, 2, 3, 4, 5, 6}
+a - b   # {1, 2}
+a ^ b   # {1, 2, 5, 6}
+```
 
 > **Gotcha:** sets are unordered — you cannot index into one or rely on iteration order. If you need both uniqueness and order, use a dict with `dict.fromkeys()`.
 
